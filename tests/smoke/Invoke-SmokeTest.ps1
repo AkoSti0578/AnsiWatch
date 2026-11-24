@@ -101,7 +101,7 @@ Check "msiexec /x exitcode 0 (was $($p.ExitCode))" { $p.ExitCode -eq 0 }
 Check 'service verwijderd' { -not (Get-Service AnsiWatch -ErrorAction SilentlyContinue) }
 Check 'Program Files\AnsiWatch verwijderd' { -not (Test-Path "$env:ProgramFiles\AnsiWatch\AnsiWatch.Service.exe") }
 Check 'config.json blijft staan' { Test-Path "$env:ProgramData\AnsiWatch\config.json" }
-Check 'logs blijven staan' { (Get-ChildItem "$env:ProgramData\AnsiWatch\logs" -Filter *.log).Count -ge 1 }
+Check 'logs blijven staan' { @(Get-ChildItem "$env:ProgramData\AnsiWatch\logs" -Filter *.log).Count -ge 1 }
 Check 'gebruikersaccount NIET verwijderd' { $null -ne (Get-LocalUser -Name $user -ErrorAction SilentlyContinue) }
 
 Copy-Item "$env:ProgramData\AnsiWatch\logs\*" $LogDir -ErrorAction SilentlyContinue
