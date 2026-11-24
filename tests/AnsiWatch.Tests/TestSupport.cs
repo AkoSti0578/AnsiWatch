@@ -63,3 +63,9 @@ public static class TestText
         return path;
     }
 }
+
+internal static class TestModuleInitializer
+{
+    [System.Runtime.CompilerServices.ModuleInitializer]
+    internal static void Init() => CodePageSupport.EnsureRegistered();
+}

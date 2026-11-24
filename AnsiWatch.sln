@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3FD99412
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnsiWatch.Tests", "tests\AnsiWatch.Tests\AnsiWatch.Tests.csproj", "{88F5FAC3-B2F3-4E45-8E6B-EAADA0B682D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnsiWatch.Service", "src\AnsiWatch.Service\AnsiWatch.Service.csproj", "{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{88F5FAC3-B2F3-4E45-8E6B-EAADA0B682D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88F5FAC3-B2F3-4E45-8E6B-EAADA0B682D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88F5FAC3-B2F3-4E45-8E6B-EAADA0B682D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7E7C2B3F-3AD2-4C3D-BE77-95C58A0F8AD1} = {258B3968-A2EB-4C9C-9CAB-6F180CF596AA}
 		{88F5FAC3-B2F3-4E45-8E6B-EAADA0B682D0} = {3FD99412-093D-4D42-A0B6-0EED5C198918}
+		{8481F3F2-95FE-4CA6-BAA8-658F4ECA8C8F} = {258B3968-A2EB-4C9C-9CAB-6F180CF596AA}
 	EndGlobalSection
 EndGlobal

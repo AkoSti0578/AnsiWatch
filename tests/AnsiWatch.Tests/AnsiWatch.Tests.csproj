@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CA1707;CA1515;CA2201;CA1861;CA5394;CA1062</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA2201;CA1861;CA5394;CA1062;CA2252</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +16,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AnsiWatch.Core\AnsiWatch.Core.csproj" />
+    <ProjectReference Include="..\..\src\AnsiWatch.Service\AnsiWatch.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
