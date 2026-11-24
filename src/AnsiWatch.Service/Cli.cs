@@ -45,7 +45,7 @@ internal static class Cli
     {
         var configPath = Option(args, "--config") ?? AppPaths.ConfigFile;
         var watchPath = Option(args, "--watch-path");
-        var created = ConfigInitializer.CreateInitialConfig(configPath, watchPath, Flag(args, "--include-subfolders"), Flag(args, "--force"));
+        var created = ConfigInitializer.CreateInitialConfig(configPath, watchPath, BoolOption(args, "--include-subfolders"), Flag(args, "--force"));
         Console.WriteLine(created
             ? $"Initiële configuratie aangemaakt: {configPath}"
             : $"{configPath} bestaat al en is ongewijzigd gelaten (gebruik --force om te overschrijven).");
@@ -144,6 +144,26 @@ internal static class Cli
     {
         var index = Array.FindIndex(args, a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));
         return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
+    }
+
+    /// <summary>
+    /// "--naam" (true), "--naam 1|true|yes|ja" (true) of "--naam 0|false|no|nee|''" (false).
+    /// De MSI geeft altijd een waarde mee: --include-subfolders "[WATCHSUBFOLDERS]".
+    /// </summary>
+    internal static bool BoolOption(string[] args, string name)
+    {
+        var index = Array.FindIndex(args, a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));
+        if (index < 0)
+        {
+            return false;
+        }
+
+        if (index + 1 >= args.Length || args[index + 1].StartsWith("--", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return args[index + 1].Trim().ToLowerInvariant() is "1" or "true" or "yes" or "ja" or "y" or "j";
     }
 
     private static bool Flag(string[] args, string name) => args.Any(a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));

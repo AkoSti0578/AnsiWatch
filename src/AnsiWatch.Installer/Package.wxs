@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AnsiWatch MSI.
+
+  Publieke properties (ook voor stille installatie via RMM):
+    SERVICEACCOUNT         DOMEIN\gebruiker, .\gebruiker, DOMEIN\gmsa$ of leeg (= LocalSystem)
+    SERVICEPASSWORD        wachtwoord (Hidden: komt niet in de MSI-log); niet nodig voor gMSA
+    WATCHPATH              optioneel; maakt bij een eerste installatie config.json aan (meerdere paden met ;)
+    WATCHSUBFOLDERS        1 = submappen meenemen voor WATCHPATH
+    SKIPACCOUNTVALIDATION  1 = aanmeldgegevens niet vooraf controleren
+
+  msiexec /i AnsiWatch-x.y.z.msi SERVICEACCOUNT="DOMEIN\svc_ansiwatch" SERVICEPASSWORD="..." WATCHPATH="D:\Export" /qn
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="AnsiWatch"
+           Manufacturer="AnsiWatch"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="{5E8B2C4A-7D1F-4E2B-9A6C-3F0D8B1E2A47}"
+           Scope="perMachine"
+           Language="1043"
+           Codepage="1252"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <SummaryInformation Description="!(loc.ProductDescription)" Manufacturer="AnsiWatch" />
+
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" AllowSameVersionUpgrades="yes" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AnsiWatchIcon" SourceFile="$(var.AssetsDir)ansiwatch.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AnsiWatchIcon" />
+    <Property Id="ARPCOMMENTS" Value="!(loc.ProductDescription)" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <!-- Alleen 64-bit Windows 10 / Server 2016 of nieuwer. -->
+    <Launch Condition="VersionNT64" Message="!(loc.Requires64Bit)" />
+    <Launch Condition="Privileged" Message="!(loc.RequiresAdmin)" />
+
+    <!-- ===== Properties ===== -->
+    <Property Id="SERVICEACCOUNT" Secure="yes" />
+    <Property Id="SERVICEPASSWORD" Secure="yes" Hidden="yes" />
+    <Property Id="WATCHPATH" Secure="yes" />
+    <Property Id="WATCHSUBFOLDERS" Secure="yes" />
+    <Property Id="SKIPACCOUNTVALIDATION" Secure="yes" />
+
+    <!-- Bij een upgrade/reparatie het eerder gebruikte account onthouden (nooit het wachtwoord). -->
+    <Property Id="SERVICEACCOUNT_SAVED" Secure="yes">
+      <RegistrySearch Id="SavedServiceAccount" Root="HKLM" Key="SOFTWARE\AnsiWatch" Name="ServiceAccount" Type="raw" Bitness="always64" />
+    </Property>
+    <SetProperty Id="SERVICEACCOUNT" Value="[SERVICEACCOUNT_SAVED]" After="AppSearch" Sequence="both"
+                 Condition="NOT SERVICEACCOUNT AND SERVICEACCOUNT_SAVED AND SERVICEACCOUNT_SAVED &lt;&gt; &quot;LocalSystem&quot;" />
+
+    <util:QueryWindowsWellKnownSIDs />
+
+    <!-- ===== Mappen ===== -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="AnsiWatch" />
+    </StandardDirectory>
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="DATAFOLDER" Name="AnsiWatch">
+        <Directory Id="LOGFOLDER" Name="logs" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <!-- ===== Features ===== -->
+    <Feature Id="Main" Title="AnsiWatch" Level="1" AllowAbsent="no">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+
+    <!-- ===== Custom actions ===== -->
+    <Binary Id="AnsiWatchCA" SourceFile="$(AnsiWatch.Installer.CustomActions.TargetDir)AnsiWatch.Installer.CustomActions.CA.dll" />
+
+    <!-- Normaliseert SERVICEACCOUNT naar SVC_ACCOUNT / SVC_DOMAIN / SVC_USER en controleert het wachtwoord. -->
+    <CustomAction Id="PrepareServiceAccount" BinaryRef="AnsiWatchCA" DllEntry="PrepareServiceAccount" Execute="immediate" Return="check" />
+    <CustomAction Id="ValidateServiceAccountUI" BinaryRef="AnsiWatchCA" DllEntry="ValidateServiceAccountUI" Execute="immediate" Return="check" />
+
+    <!-- Initiële config.json (alleen als WATCHPATH is opgegeven en er nog geen config is). Draait als SYSTEM. -->
+    <CustomAction Id="InitConfig" FileRef="ServiceExe"
+                  ExeCommand="init-config --watch-path &quot;[WATCHPATH]&quot; --include-subfolders &quot;[WATCHSUBFOLDERS]&quot;"
+                  Execute="deferred" Impersonate="no" Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="PrepareServiceAccount" Before="CostFinalize" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+      <Custom Action="InitConfig" After="InstallFiles" Condition="WATCHPATH AND NOT REMOVE~=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+
+    <!-- ===== UI ===== -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <WixVariable Id="WixUIBannerBmp" Value="Resources\Banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Resources\Dialog.bmp" />
+    <UIRef Id="AnsiWatchUI" />
+
+    <!-- Configuratietool openen na de installatie (ShellExecute, zodat de UAC-prompt werkt). -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="!(loc.LaunchConfigTool)" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#ConfigExe]" />
+    <CustomAction Id="LaunchConfigTool" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec" Impersonate="yes" />
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents">
+
+      <!-- De service -->
+      <Component Id="ServiceComponent" Directory="INSTALLFOLDER" Guid="{8C1F3B52-0E6A-4D4F-B7E1-2A9C5D3F6B10}">
+        <File Id="ServiceExe" Source="$(var.PublishDir)AnsiWatch.Service.exe" KeyPath="yes" />
+
+        <ServiceInstall Id="AnsiWatchService"
+                        Name="AnsiWatch"
+                        DisplayName="!(loc.ServiceDisplayName)"
+                        Description="!(loc.ServiceDescription)"
+                        Type="ownProcess"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Account="[SVC_ACCOUNT]"
+                        Password="[SERVICEPASSWORD]"
+                        Vital="yes">
+          <!-- Vertraagd automatisch starten; herstelacties ook bij een stop met foutcode. -->
+          <ServiceConfig DelayedAutoStart="yes" FailureActionsWhen="failedToStopOrReturnedError" OnInstall="yes" OnReinstall="yes" />
+          <!-- Herstel: herstart na 60 s bij de eerste, tweede en volgende fout. -->
+          <util:ServiceConfig FirstFailureActionType="restart"
+                              SecondFailureActionType="restart"
+                              ThirdFailureActionType="restart"
+                              RestartServiceDelayInSeconds="60"
+                              ResetPeriodInDays="1" />
+        </ServiceInstall>
+        <ServiceControl Id="AnsiWatchServiceControl" Name="AnsiWatch" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+      </Component>
+
+      <!-- De configuratietool + startmenu -->
+      <Component Id="ConfigComponent" Directory="INSTALLFOLDER" Guid="{2D7A9E41-5B3C-4F8E-A6D2-7C1B0E9F4A23}">
+        <File Id="ConfigExe" Source="$(var.PublishDir)AnsiWatch.Config.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="DocsComponent" Directory="INSTALLFOLDER" Guid="{6B4E1C7A-9D2F-4A3B-8E5C-1F0A7D3B9C64}">
+        <File Id="ReadmeFile" Source="$(var.RepoDir)README.md" KeyPath="yes" />
+      </Component>
+      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="{A3F05D2B-6E8C-4B1A-9D7F-0C2E4B6A8D19}">
+        <Shortcut Id="ConfigShortcut" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
+                  Target="[#ConfigExe]" WorkingDirectory="INSTALLFOLDER" Icon="AnsiWatchIcon" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\AnsiWatch" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Installatiegegevens; ServiceAccount wordt bij een upgrade weer voorgesteld (nooit het wachtwoord). -->
+      <Component Id="RegistryComponent" Directory="INSTALLFOLDER" Guid="{C7E2A915-3B6D-4F0A-8C1E-5D9B2F7A4E36}">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\AnsiWatch">
+          <RegistryValue Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+          <RegistryValue Name="Version" Type="string" Value="$(var.ProductVersion)" />
+          <RegistryValue Name="ServiceAccount" Type="string" Value="[SVC_ACCOUNT]" />
+        </RegistryKey>
+      </Component>
+
+      <!-- "Aanmelden als service" voor het opgegeven account (ook gMSA). Het account wordt NIET aangemaakt of verwijderd. -->
+      <Component Id="ServiceLogonRight" Directory="INSTALLFOLDER" Guid="{F1B8D3C6-2A7E-4E9B-B5D0-8C3A6E1F7B52}" Condition="SVC_USER">
+        <util:User Id="ServiceUser" Name="[SVC_USER]" Domain="[SVC_DOMAIN]"
+                   CreateUser="no" UpdateIfExists="no" RemoveOnUninstall="no" LogonAsService="yes" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\AnsiWatch" Name="ServiceLogonRightAccount" Type="string" Value="[SVC_ACCOUNT]" KeyPath="yes" />
+      </Component>
+
+      <!-- %ProgramData%\AnsiWatch: Administrators en SYSTEM volledige rechten. Blijft staan bij deïnstallatie. -->
+      <Component Id="DataFolder" Directory="DATAFOLDER" Guid="{0E9C4A7B-1D3F-4B6E-A2C8-9F5D7B3E1A64}" Permanent="yes">
+        <CreateFolder>
+          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+      <Component Id="LogFolder" Directory="LOGFOLDER" Guid="{4A2D8F6C-7B1E-4C3A-9E5D-2B8F0C6A1D73}" Permanent="yes">
+        <CreateFolder />
+      </Component>
+      <!-- ... en het serviceaccount volledige rechten (overerft naar config.json en logs). -->
+      <Component Id="DataFolderServiceAccount" Directory="DATAFOLDER" Guid="{9D6B3E1A-4C8F-4A2D-B7E3-5A1C9F2D6E80}" Condition="SVC_USER" Permanent="yes">
+        <CreateFolder>
+          <util:PermissionEx User="[SVC_USER]" Domain="[SVC_DOMAIN]" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Event Log-bron "AnsiWatch" (Application-log). -->
+      <Component Id="EventSourceComponent" Directory="INSTALLFOLDER" Guid="{B5C1E7A3-8F2D-4D6B-9A4E-3C7F1B5D9E28}">
+        <util:EventSource Name="AnsiWatch" Log="Application"
+                          EventMessageFile="[WindowsFolder]Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
+                          KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

@@ -1,0 +1,28 @@
+<Project Sdk="WixToolset.Sdk">
+  <!--
+    MSI voor AnsiWatch. Bouwen via build.ps1 (publiceert eerst de exe's).
+    WiX v7 vereist acceptatie van de Open Source Maintenance Fee EULA: build.ps1 -AcceptWixEula
+    (dit zet -p:AcceptEula=wix7). Zie README.md.
+  -->
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>AnsiWatch-$(Version)</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Platform>x64</Platform>
+    <Cultures>nl-NL</Cultures>
+    <AnsiWatchPublishDir Condition=" '$(AnsiWatchPublishDir)' == '' ">$(MSBuildThisFileDirectory)..\..\artifacts\publish\</AnsiWatchPublishDir>
+    <AnsiWatchPublishDir Condition=" !HasTrailingSlash('$(AnsiWatchPublishDir)') ">$(AnsiWatchPublishDir)\</AnsiWatchPublishDir>
+    <DefineConstants>ProductVersion=$(Version);PublishDir=$(AnsiWatchPublishDir);AssetsDir=$(MSBuildThisFileDirectory)..\..\assets\;RepoDir=$(MSBuildThisFileDirectory)..\..\</DefineConstants>
+    <!-- ICE61: AllowSameVersionUpgrades is bewust aan (herbouw met dezelfde versie vervangt de vorige). -->
+    <SuppressIces>ICE61</SuppressIces>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" />
+    <PackageReference Include="WixToolset.UI.wixext" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnsiWatch.Installer.CustomActions\AnsiWatch.Installer.CustomActions.csproj" />
+  </ItemGroup>
+</Project>

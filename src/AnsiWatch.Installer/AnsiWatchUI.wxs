@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dialoogvolgorde (gebaseerd op WixUI_InstallDir, zonder licentiedialoog):
+    Welkom → Installatiemap → Serviceaccount (+ optionele map) → Gereed om te installeren
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <UI Id="AnsiWatchUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchConfigTool" Order="1"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Condition="NOT Installed" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="Installed AND PATCH" />
+
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="3" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ServiceAccountDlg" Order="4" />
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2" />
+
+      <Publish Dialog="BrowseDlg" Control="OK" Event="CheckTargetPath" Value="[_BrowseProperty]" Order="1" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SetTargetPath" Value="[_BrowseProperty]" Order="3" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="EndDialog" Value="Return" Order="4" />
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ServiceAccountDlg" Order="1" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed AND NOT PATCH" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="Installed AND PATCH" />
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+  </Fragment>
+
+  <Fragment>
+    <UI>
+      <Dialog Id="ServiceAccountDlg" Width="370" Height="270" Title="!(loc.SvcDlg_Title)">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+          <Publish Event="DoAction" Value="ValidateServiceAccountUI" Order="1" />
+          <Publish Event="SpawnDialog" Value="ServiceAccountErrorDlg" Order="2" Condition="SVC_VALIDATION_ERROR" />
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" Order="3" Condition="NOT SVC_VALIDATION_ERROR" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.SvcDlg_Description)" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="260" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.SvcDlg_Heading)" />
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="373" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="373" Height="0" />
+
+        <Control Id="Intro" Type="Text" X="20" Y="50" Width="330" Height="26" NoPrefix="yes" Text="!(loc.SvcDlg_Intro)" />
+
+        <Control Id="AccountLabel" Type="Text" X="20" Y="80" Width="330" Height="10" Text="!(loc.SvcDlg_AccountLabel)" />
+        <Control Id="AccountEdit" Type="Edit" X="20" Y="91" Width="320" Height="16" Property="SERVICEACCOUNT" Text="{256}" />
+
+        <Control Id="PasswordLabel" Type="Text" X="20" Y="112" Width="330" Height="10" Text="!(loc.SvcDlg_PasswordLabel)" />
+        <Control Id="PasswordEdit" Type="Edit" X="20" Y="123" Width="320" Height="16" Property="SERVICEPASSWORD" Password="yes" Text="{256}" />
+        <Control Id="AccountHint" Type="Text" X="20" Y="142" Width="330" Height="20" NoPrefix="yes" Text="!(loc.SvcDlg_AccountHint)" />
+
+        <Control Id="WatchLabel" Type="Text" X="20" Y="168" Width="330" Height="10" Text="!(loc.SvcDlg_WatchLabel)" />
+        <Control Id="WatchEdit" Type="Edit" X="20" Y="179" Width="320" Height="16" Property="WATCHPATH" Text="{1024}"
+                 DisableCondition="WIX_UPGRADE_DETECTED" />
+        <Control Id="WatchSubfolders" Type="CheckBox" X="20" Y="199" Width="200" Height="14" Property="WATCHSUBFOLDERS" CheckBoxValue="1"
+                 Text="!(loc.SvcDlg_WatchSubfolders)" DisableCondition="WIX_UPGRADE_DETECTED" />
+        <Control Id="WatchHint" Type="Text" X="20" Y="215" Width="330" Height="16" NoPrefix="yes" Text="!(loc.SvcDlg_WatchHint)" />
+      </Dialog>
+
+      <Dialog Id="ServiceAccountErrorDlg" Width="290" Height="110" Title="!(loc.SvcDlg_Title)">
+        <Control Id="Icon" Type="Icon" X="15" Y="15" Width="24" Height="24" FixedSize="yes" IconSize="32" Text="!(loc.ErrorDlgErrorIcon)" />
+        <Control Id="Message" Type="Text" X="48" Y="15" Width="227" Height="60" NoPrefix="yes" Text="[SVC_VALIDATION_ERROR]" />
+        <Control Id="OK" Type="PushButton" X="117" Y="83" Width="56" Height="17" Default="yes" Cancel="yes" Text="!(loc.WixUIOK)">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>

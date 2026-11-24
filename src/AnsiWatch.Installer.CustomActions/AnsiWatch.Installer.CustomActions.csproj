@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Managed custom actions (WiX DTF) voor de MSI. Draait in de Windows Installer-host en
+    moet daarom .NET Framework 4.7.2 targeten. Het bouwen van het .CA.dll-pakket (MakeSfxCA)
+    kan alleen op Windows.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Platform>x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AnalysisLevel>none</AnalysisLevel>
+    <DebugType>portable</DebugType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Dtf.CustomAction" />
+    <PackageReference Include="WixToolset.Dtf.WindowsInstaller" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="CustomAction.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

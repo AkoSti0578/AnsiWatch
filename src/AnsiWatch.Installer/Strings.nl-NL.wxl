@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="nl-NL" Codepage="1252" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductDescription" Value="AnsiWatch zet UTF-16LE-tekstbestanden in bewaakte mappen automatisch om naar ANSI." />
+  <String Id="ServiceDisplayName" Value="AnsiWatch – UTF-16LE naar ANSI converter" />
+  <String Id="ServiceDescription" Value="Bewaakt mappen op .txt-bestanden in UTF-16LE en zet ze bijna direct en zonder inhoudsverlies om naar ANSI (standaard Windows-1252). Configuratie: %ProgramData%\AnsiWatch\config.json." />
+  <String Id="ShortcutName" Value="AnsiWatch configuratie" />
+  <String Id="ShortcutDescription" Value="Mappen, instellingen en status van de AnsiWatch-service beheren" />
+  <String Id="LaunchConfigTool" Value="AnsiWatch-configuratie openen" />
+  <String Id="DowngradeError" Value="Er is al een nieuwere versie van [ProductName] geïnstalleerd." />
+  <String Id="Requires64Bit" Value="AnsiWatch vereist een 64-bits versie van Windows." />
+  <String Id="RequiresAdmin" Value="Voor de installatie van AnsiWatch zijn beheerdersrechten nodig." />
+
+  <String Id="SvcDlg_Title" Value="[ProductName] Setup" />
+  <String Id="SvcDlg_Heading" Value="{\WixUI_Font_Title}Serviceaccount" />
+  <String Id="SvcDlg_Description" Value="Onder welk account moet de AnsiWatch-service draaien?" />
+  <String Id="SvcDlg_Intro" Value="Het account heeft lees- en schrijfrechten nodig op alle bewaakte mappen (bij shares: share- én NTFS-rechten). Het recht 'Aanmelden als service' wordt automatisch toegekend." />
+  <String Id="SvcDlg_AccountLabel" Value="&amp;Account (DOMEIN\gebruiker, .\gebruiker of DOMEIN\gmsa$):" />
+  <String Id="SvcDlg_PasswordLabel" Value="&amp;Wachtwoord:" />
+  <String Id="SvcDlg_AccountHint" Value="Leeg laten = LocalSystem (geen toegang tot de meeste netwerkshares). Een gMSA heeft geen wachtwoord nodig." />
+  <String Id="SvcDlg_WatchLabel" Value="Te bewaken &amp;map (optioneel; meerdere met ;):" />
+  <String Id="SvcDlg_WatchSubfolders" Value="Inclusief &amp;submappen" />
+  <String Id="SvcDlg_WatchHint" Value="Maakt alleen bij een eerste installatie een config.json aan. Later aan te passen in AnsiWatch configuratie." />
+</WixLocalization>
