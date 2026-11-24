@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Centrale versie- en buildinstellingen voor de hele AnsiWatch-solution.
+    De versie hieronder is de ENIGE plek waar het versienummer staat: assemblies,
+    exe's, de MSI (ProductVersion) en de bestandsnaam AnsiWatch-x.y.z.msi volgen deze.
+  -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Product>AnsiWatch</Product>
+    <Company>AnsiWatch</Company>
+    <Authors>AnsiWatch</Authors>
+    <Copyright>Copyright © $([System.DateTime]::Now.Year) AnsiWatch</Copyright>
+    <Description>Windows-service die UTF-16LE .txt-bestanden bijna direct omzet naar ANSI.</Description>
+    <NeutralLanguage>nl-NL</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(MSBuildProjectExtension)' == '.csproj' ">
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Linux/macOS-ontwikkelmachines en CI mogen ook de Windows-projecten compileren -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en;nl</SatelliteResourceLanguages>
+    <NoWarn>$(NoWarn);CA1848;CA1805;CA1031;CA2007;CA1303;CA1716</NoWarn>
+  </PropertyGroup>
+</Project>
