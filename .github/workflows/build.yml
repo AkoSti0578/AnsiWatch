@@ -5,6 +5,11 @@ on:
     branches: ['**']
   pull_request:
   workflow_dispatch:
+    inputs:
+      smoke_test:
+        description: 'Smoke-test uitvoeren (MSI installeren, converteren, deïnstalleren)'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -30,21 +35,43 @@ jobs:
         shell: pwsh
         run: ./build.ps1
 
-      - name: Smoke-test MSI (installeren, converteren, deïnstalleren)
+      - name: Versie bepalen
+        id: version
         shell: pwsh
-        run: ./tests/smoke/Invoke-SmokeTest.ps1 -Msi (Get-ChildItem artifacts -Filter 'AnsiWatch-*.msi').FullName
+        run: |
+          $msi = Get-ChildItem artifacts -Filter 'AnsiWatch-*.msi' | Select-Object -First 1
+          $version = $msi.BaseName -replace '^AnsiWatch-', ''
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "### AnsiWatch $version" >> $env:GITHUB_STEP_SUMMARY
+          "MSI: ``$($msi.Name)`` ($([math]::Round($msi.Length / 1MB, 1)) MB)  " >> $env:GITHUB_STEP_SUMMARY
+          "SHA-256: ``$((Get-FileHash $msi.FullName -Algorithm SHA256).Hash)``" >> $env:GITHUB_STEP_SUMMARY
 
-      - name: Artefacten
-        if: always()
+      # De MSI direct na de build als eigen artifact, zodat hij ook beschikbaar is als de smoke-test faalt.
+      - name: MSI uploaden
         uses: actions/upload-artifact@v4
         with:
-          name: AnsiWatch
+          name: AnsiWatch-${{ steps.version.outputs.version }}-msi
           path: |
             artifacts/AnsiWatch-*.msi
             artifacts/AnsiWatch-*.msi.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+      - name: Smoke-test MSI (installeren, converteren, deïnstalleren)
+        if: github.event_name != 'workflow_dispatch' || inputs.smoke_test
+        shell: pwsh
+        run: ./tests/smoke/Invoke-SmokeTest.ps1 -Msi (Get-ChildItem artifacts -Filter 'AnsiWatch-*.msi').FullName
+
+      - name: Test- en smoke-logs uploaden
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
             artifacts/test-results/**
             artifacts/smoke/**
-          if-no-files-found: warn
+          if-no-files-found: ignore
 
   linux:
     name: Unit- en integratietests (Linux)
