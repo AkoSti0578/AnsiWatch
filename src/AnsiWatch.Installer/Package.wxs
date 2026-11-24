@@ -131,15 +131,14 @@
 
       <!-- De configuratietool + startmenu -->
       <Component Id="ConfigComponent" Directory="INSTALLFOLDER" Guid="{2D7A9E41-5B3C-4F8E-A6D2-7C1B0E9F4A23}">
-        <File Id="ConfigExe" Source="$(var.PublishDir)AnsiWatch.Config.exe" KeyPath="yes" />
+        <File Id="ConfigExe" Source="$(var.PublishDir)AnsiWatch.Config.exe" KeyPath="yes">
+          <!-- Geadverteerde snelkoppeling in het (per-machine) startmenu; keypath = de exe (ICE38/43/57-proof). -->
+          <Shortcut Id="ConfigShortcut" Directory="ProgramMenuFolder" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
+                    WorkingDirectory="INSTALLFOLDER" Icon="AnsiWatchIcon" Advertise="yes" />
+        </File>
       </Component>
       <Component Id="DocsComponent" Directory="INSTALLFOLDER" Guid="{6B4E1C7A-9D2F-4A3B-8E5C-1F0A7D3B9C64}">
         <File Id="ReadmeFile" Source="$(var.RepoDir)README.md" KeyPath="yes" />
-      </Component>
-      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="{A3F05D2B-6E8C-4B1A-9D7F-0C2E4B6A8D19}">
-        <Shortcut Id="ConfigShortcut" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
-                  Target="[#ConfigExe]" WorkingDirectory="INSTALLFOLDER" Icon="AnsiWatchIcon" />
-        <RegistryValue Root="HKLM" Key="SOFTWARE\AnsiWatch" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
       <!-- Installatiegegevens; ServiceAccount wordt bij een upgrade weer voorgesteld (nooit het wachtwoord). -->
