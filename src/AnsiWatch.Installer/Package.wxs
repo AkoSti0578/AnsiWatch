@@ -29,8 +29,10 @@
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" AllowSameVersionUpgrades="yes" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
-    <Icon Id="AnsiWatchIcon" SourceFile="$(var.AssetsDir)ansiwatch.ico" />
-    <Property Id="ARPPRODUCTICON" Value="AnsiWatchIcon" />
+    <Icon Id="AnsiWatch.ico" SourceFile="$(var.AssetsDir)ansiwatch.ico" />
+    <!-- ICE50: een geadverteerde snelkoppeling vereist een Icon-Id met dezelfde extensie als het doel (.exe). -->
+    <Icon Id="AnsiWatchConfig.exe" SourceFile="$(var.PublishDir)AnsiWatch.Config.exe" />
+    <Property Id="ARPPRODUCTICON" Value="AnsiWatch.ico" />
     <Property Id="ARPCOMMENTS" Value="!(loc.ProductDescription)" />
     <Property Id="ARPNOMODIFY" Value="1" />
 
@@ -134,7 +136,7 @@
         <File Id="ConfigExe" Source="$(var.PublishDir)AnsiWatch.Config.exe" KeyPath="yes">
           <!-- Geadverteerde snelkoppeling in het (per-machine) startmenu; keypath = de exe (ICE38/43/57-proof). -->
           <Shortcut Id="ConfigShortcut" Directory="ProgramMenuFolder" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
-                    WorkingDirectory="INSTALLFOLDER" Icon="AnsiWatchIcon" Advertise="yes" />
+                    WorkingDirectory="INSTALLFOLDER" Icon="AnsiWatchConfig.exe" Advertise="yes" />
         </File>
       </Component>
       <Component Id="DocsComponent" Directory="INSTALLFOLDER" Guid="{6B4E1C7A-9D2F-4A3B-8E5C-1F0A7D3B9C64}">
